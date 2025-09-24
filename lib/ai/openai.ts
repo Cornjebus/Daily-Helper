@@ -1,19 +1,19 @@
 import OpenAI from 'openai'
 import { createClient } from '@/lib/supabase/server'
 
-// Initialize OpenAI client with error handling
-let openai: OpenAI
-try {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY environment variable is not set')
-  }
+// Initialize OpenAI client with lazy loading to avoid build-time errors
+let openai: OpenAI | null = null
 
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  })
-} catch (error) {
-  console.error('❌ Failed to initialize OpenAI client:', error)
-  throw error
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    const apiKey = process.env.OPENAI_API_KEY
+    if (!apiKey) {
+      console.error('❌ Failed to initialize OpenAI client: OPENAI_API_KEY environment variable is not set')
+      throw new Error('OPENAI_API_KEY environment variable is not set')
+    }
+    openai = new OpenAI({ apiKey })
+  }
+  return openai
 }
 
 // Token pricing (in cents per 1K tokens) - Updated with approximate pricing
@@ -188,7 +188,7 @@ Return a JSON object with:
         }
 
         // Other models: use Chat Completions
-        const response = await openai.chat.completions.create({
+        const response = await getOpenAIClient().chat.completions.create({
           model: modelConfig.name,
           messages: [
             { role: 'system', content: 'You are an AI assistant that helps prioritize emails. Be concise and accurate. Always respond with valid JSON.' },
@@ -361,7 +361,7 @@ Return a JSON object with:
         return { parsedResult, usage }
       }
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAIClient().chat.completions.create({
         model: modelName,
         messages: [
           { role: 'system', content: 'You are an AI assistant that creates concise email summaries. Focus on key information and action items. Always return valid JSON.' },
@@ -461,7 +461,7 @@ Return a JSON object with:
         return { parsedResult, usage }
       }
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAIClient().chat.completions.create({
         model: replyModel,
         messages: [
           { role: 'system', content: 'You are an AI assistant that generates professional, concise email reply suggestions. Always return valid JSON with exactly 3 reply options.' },
@@ -649,7 +649,7 @@ export async function healthCheck(): Promise<{
     }
 
     // Test API call
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: 'Test' }],
       max_tokens: 5
