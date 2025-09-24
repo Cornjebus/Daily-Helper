@@ -5,11 +5,21 @@ import { createClient } from '@/lib/supabase/server'
 let openai: OpenAI | null = null
 
 function getOpenAIClient(): OpenAI {
+  // Skip initialization during build time
+  if (typeof window === 'undefined' && process.env.NODE_ENV === 'production' && !process.env.OPENAI_API_KEY) {
+    // Return a dummy client during build that will never be called
+    return {} as OpenAI
+  }
+
   if (!openai) {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      // Don't log during build time - this will be caught at runtime
-      throw new Error('OPENAI_API_KEY environment variable is not set')
+      // Don't fail during build - this will be caught at runtime
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('OPENAI_API_KEY environment variable is not set')
+      }
+      // Development fallback
+      return {} as OpenAI
     }
     openai = new OpenAI({ apiKey })
   }
