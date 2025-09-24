@@ -8,7 +8,7 @@ function getOpenAIClient(): OpenAI {
   if (!openai) {
     const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
-      console.error('❌ Failed to initialize OpenAI client: OPENAI_API_KEY environment variable is not set')
+      // Don't log during build time - this will be caught at runtime
       throw new Error('OPENAI_API_KEY environment variable is not set')
     }
     openai = new OpenAI({ apiKey })
