@@ -1,0 +1,20 @@
+graph TD
+    subgraph User
+        A[User] --> B{Unified Focus Assistant}
+    end
+
+    subgraph "Unified Focus Assistant"
+        B --> C[Frontend: Next.js]
+        C --> D{Backend: Vercel Serverless}
+        D --> E[Supabase: Auth, DB, Storage]
+        D --> F[OpenAI API]
+        D --> G[Gmail API]
+        D --> H[Slack API]
+        D --> I[Google Calendar API]
+    end
+
+    subgraph "Data Sources"
+        G --> J((Gmail))
+        H --> K((Slack))
+        I --> L((Google Calendar))
+    end

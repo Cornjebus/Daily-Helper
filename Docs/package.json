@@ -1,0 +1,14 @@
+{
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "next": "15.5.3",
+    "@supabase/supabase-js": "^2.57.2",
+    "openai": "^5.21.0",
+    "@slack/bolt": "^4.4.0",
+    "googleapis": "^25.0.0",
+    "@notionhq/client": "^2.2.15",
+    "@linear/sdk": "^22.0.0",
+    "trello": "^0.10.0",
+    "calendly": "^1.0.0"
+  }
+}
