@@ -12,6 +12,12 @@ const nextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  // Skip API routes during build
+  experimental: {
+    outputFileTracingExcludes: {
+      '/api/ai/smart-replies': ['*'],
+    },
+  },
 }
 
 module.exports = nextConfig

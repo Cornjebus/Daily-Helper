@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "OPENAI_API_KEY=dummy_build_key next build",
     "start": "next start",
     "lint": "eslint",
     "test": "jest",
