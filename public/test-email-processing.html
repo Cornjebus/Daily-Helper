@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Processing Flow Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .test-result {
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border-radius: 0.25rem;
+        }
+        .test-pass { background-color: #d1fae5; color: #065f46; }
+        .test-fail { background-color: #fee2e2; color: #991b1b; }
+        .test-pending { background-color: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Email Processing Flow Test</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test Controls -->
+            <div class="space-y-4">
+                <h2 class="text-lg font-semibold">Test Controls</h2>
+
+                <button id="testAuthStatus" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                    Test Authentication Status
+                </button>
+
+                <button id="testApiEndpoint" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
+                    Test API Endpoint
+                </button>
+
+                <button id="testProcessEmails" class="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600">
+                    Test Process Emails
+                </button>
+
+                <button id="testErrorHandling" class="w-full bg-red-500 text-white p-2 rounded hover:bg-red-600">
+                    Test Error Handling
+                </button>
+
+                <button id="runAllTests" class="w-full bg-gray-800 text-white p-2 rounded hover:bg-gray-900">
+                    Run All Tests
+                </button>
+            </div>
+
+            <!-- Test Results -->
+            <div>
+                <h2 class="text-lg font-semibold mb-4">Test Results</h2>
+                <div id="testResults" class="space-y-2 max-h-96 overflow-y-auto">
+                    <!-- Test results will appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Info -->
+        <div class="mt-8">
+            <h2 class="text-lg font-semibold mb-4">Debug Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-4 rounded">
+                    <h3 class="font-medium mb-2">Browser Info</h3>
+                    <div id="browserInfo" class="text-sm text-gray-600"></div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <h3 class="font-medium mb-2">Console Logs</h3>
+                    <div id="consoleLogs" class="text-sm text-gray-600 max-h-32 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Test Instructions -->
+        <div class="mt-8">
+            <h2 class="text-lg font-semibold mb-4">Manual Test Instructions</h2>
+            <div class="bg-blue-50 p-4 rounded">
+                <ol class="list-decimal list-inside space-y-2 text-sm">
+                    <li>Open browser dev tools (F12)</li>
+                    <li>Go to the Network tab</li>
+                    <li>Navigate to the dashboard page</li>
+                    <li>Click the "Process Emails" button</li>
+                    <li>Check for:
+                        <ul class="list-disc list-inside ml-4 mt-1">
+                            <li>POST request to /api/ai/process-emails</li>
+                            <li>Request includes credentials/cookies</li>
+                            <li>Response status and content</li>
+                            <li>Any JavaScript errors in Console tab</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test suite for email processing flow
+        class EmailProcessingTestSuite {
+            constructor() {
+                this.results = [];
+                this.setupUI();
+                this.captureLogs();
+            }
+
+            setupUI() {
+                // Display browser info
+                document.getElementById('browserInfo').innerHTML = `
+                    User Agent: ${navigator.userAgent}<br>
+                    URL: ${window.location.href}<br>
+                    Cookies Enabled: ${navigator.cookieEnabled}<br>
+                    Online: ${navigator.onLine}
+                `;
+
+                // Setup event listeners
+                document.getElementById('testAuthStatus').onclick = () => this.testAuthStatus();
+                document.getElementById('testApiEndpoint').onclick = () => this.testApiEndpoint();
+                document.getElementById('testProcessEmails').onclick = () => this.testProcessEmails();
+                document.getElementById('testErrorHandling').onclick = () => this.testErrorHandling();
+                document.getElementById('runAllTests').onclick = () => this.runAllTests();
+            }
+
+            captureLogs() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                const logContainer = document.getElementById('consoleLogs');
+
+                console.log = (...args) => {
+                    originalLog(...args);
+                    logContainer.innerHTML += `<div class="text-blue-600">[LOG] ${args.join(' ')}</div>`;
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                };
+
+                console.error = (...args) => {
+                    originalError(...args);
+                    logContainer.innerHTML += `<div class="text-red-600">[ERROR] ${args.join(' ')}</div>`;
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                };
+            }
+
+            addResult(testName, status, message) {
+                const result = { testName, status, message, timestamp: new Date() };
+                this.results.push(result);
+                this.displayResult(result);
+            }
+
+            displayResult(result) {
+                const resultsContainer = document.getElementById('testResults');
+                const statusClass = {
+                    'PASS': 'test-pass',
+                    'FAIL': 'test-fail',
+                    'PENDING': 'test-pending'
+                }[result.status] || 'test-pending';
+
+                resultsContainer.innerHTML += `
+                    <div class="test-result ${statusClass}">
+                        <strong>[${result.status}]</strong> ${result.testName}: ${result.message}
+                        <small class="block text-xs opacity-75">${result.timestamp.toLocaleTimeString()}</small>
+                    </div>
+                `;
+                resultsContainer.scrollTop = resultsContainer.scrollHeight;
+            }
+
+            async testAuthStatus() {
+                this.addResult('Auth Status', 'PENDING', 'Checking authentication...');
+
+                try {
+                    // Try to access a protected resource
+                    const response = await fetch('/api/ai/process-emails', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (response.status === 401) {
+                        this.addResult('Auth Status', 'FAIL', 'User not authenticated');
+                    } else if (response.status === 200) {
+                        this.addResult('Auth Status', 'PASS', 'User authenticated');
+                    } else {
+                        this.addResult('Auth Status', 'PENDING', `Unexpected status: ${response.status}`);
+                    }
+                } catch (error) {
+                    this.addResult('Auth Status', 'FAIL', `Error: ${error.message}`);
+                }
+            }
+
+            async testApiEndpoint() {
+                this.addResult('API Endpoint', 'PENDING', 'Testing API availability...');
+
+                try {
+                    const response = await fetch('/api/ai/process-emails', {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const responseText = await response.text();
+                    let responseJson;
+
+                    try {
+                        responseJson = JSON.parse(responseText);
+                    } catch (e) {
+                        throw new Error(`Invalid JSON response: ${responseText}`);
+                    }
+
+                    if (response.status === 401) {
+                        this.addResult('API Endpoint', 'PASS', 'API correctly requires authentication');
+                    } else if (response.status === 200) {
+                        this.addResult('API Endpoint', 'PASS', 'API accessible and working');
+                    } else if (response.status === 429) {
+                        this.addResult('API Endpoint', 'PASS', 'API correctly handles budget limits');
+                    } else {
+                        this.addResult('API Endpoint', 'PENDING', `Status ${response.status}: ${JSON.stringify(responseJson)}`);
+                    }
+                } catch (error) {
+                    this.addResult('API Endpoint', 'FAIL', `Network error: ${error.message}`);
+                }
+            }
+
+            async testProcessEmails() {
+                this.addResult('Process Emails', 'PENDING', 'Testing email processing flow...');
+
+                try {
+                    // Simulate the exact call made by the frontend component
+                    const startTime = Date.now();
+                    const response = await fetch('/api/ai/process-emails', {
+                        method: 'POST',
+                        credentials: 'include', // This is crucial!
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const duration = Date.now() - startTime;
+                    const responseData = await response.json();
+
+                    if (response.status === 401) {
+                        this.addResult('Process Emails', 'FAIL', 'Authentication failed - user needs to log in');
+                    } else if (response.status === 429) {
+                        this.addResult('Process Emails', 'PASS', 'Budget limit protection working');
+                    } else if (response.status === 200) {
+                        const { processed } = responseData;
+                        this.addResult('Process Emails', 'PASS',
+                            `Processed ${processed?.scored || 0} emails, ${processed?.summarized || 0} threads in ${duration}ms`);
+                    } else {
+                        this.addResult('Process Emails', 'FAIL',
+                            `Unexpected response ${response.status}: ${JSON.stringify(responseData)}`);
+                    }
+                } catch (error) {
+                    this.addResult('Process Emails', 'FAIL', `Error: ${error.message}`);
+                }
+            }
+
+            async testErrorHandling() {
+                this.addResult('Error Handling', 'PENDING', 'Testing error scenarios...');
+
+                // Test 1: Invalid endpoint
+                try {
+                    const response = await fetch('/api/invalid-endpoint', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+
+                    if (response.status === 404) {
+                        this.addResult('Error Handling', 'PASS', 'Correctly handles invalid endpoints');
+                    } else {
+                        this.addResult('Error Handling', 'FAIL', `Expected 404, got ${response.status}`);
+                    }
+                } catch (error) {
+                    this.addResult('Error Handling', 'PASS', 'Network errors handled gracefully');
+                }
+
+                // Test 2: Network timeout simulation
+                try {
+                    const controller = new AbortController();
+                    setTimeout(() => controller.abort(), 100);
+
+                    await fetch('/api/ai/process-emails', {
+                        method: 'POST',
+                        credentials: 'include',
+                        signal: controller.signal
+                    });
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        this.addResult('Error Handling', 'PASS', 'Timeout scenarios handled');
+                    }
+                }
+            }
+
+            async runAllTests() {
+                document.getElementById('testResults').innerHTML = '';
+                this.results = [];
+
+                this.addResult('Test Suite', 'PENDING', 'Starting comprehensive test suite...');
+
+                await this.testAuthStatus();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                await this.testApiEndpoint();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                await this.testProcessEmails();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                await this.testErrorHandling();
+
+                // Summary
+                const passed = this.results.filter(r => r.status === 'PASS').length;
+                const failed = this.results.filter(r => r.status === 'FAIL').length;
+                const pending = this.results.filter(r => r.status === 'PENDING').length;
+
+                this.addResult('Test Suite', 'PASS',
+                    `Complete! ${passed} passed, ${failed} failed, ${pending} pending`);
+            }
+        }
+
+        // Initialize test suite when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            window.testSuite = new EmailProcessingTestSuite();
+            console.log('Email Processing Test Suite initialized');
+            console.log('Open browser dev tools and check Network tab when running tests');
+        });
+
+        // Helper functions for manual testing
+        window.debugEmailProcessing = {
+            checkFetch: () => {
+                console.log('Testing basic fetch capability...');
+                fetch('/api/ai/process-emails', {
+                    method: 'GET',
+                    credentials: 'include'
+                })
+                .then(r => console.log('Response status:', r.status))
+                .catch(e => console.error('Fetch error:', e));
+            },
+
+            checkAuth: async () => {
+                console.log('Checking authentication...');
+                try {
+                    const response = await fetch('/api/ai/process-emails', {
+                        method: 'GET',
+                        credentials: 'include'
+                    });
+                    console.log('Auth check response:', response.status);
+                    const data = await response.json();
+                    console.log('Auth response data:', data);
+                } catch (error) {
+                    console.error('Auth check error:', error);
+                }
+            },
+
+            simulateButtonClick: () => {
+                console.log('Simulating Process Emails button click...');
+                fetch('/api/ai/process-emails', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    console.log('Button click response:', response.status);
+                    return response.json();
+                })
+                .then(data => console.log('Button click data:', data))
+                .catch(error => console.error('Button click error:', error));
+            }
+        };
+    </script>
+</body>
+</html>

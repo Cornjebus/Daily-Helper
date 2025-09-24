@@ -100,7 +100,7 @@
 
 ---
 
-## Phase 3: AI Processing with Cost Tracking ✅ COMPLETED
+## Phase 3: AI Processing with Cost Tracking ✅ COMPLETED (MVP: cost/budget tracking disabled)
 **Duration**: 4-5 days (Actual: 1 day)
 **Objective**: Add OpenAI scoring and summarization with REAL API calls
 
@@ -108,46 +108,57 @@
 - [x] Test OpenAI API connection
 - [x] Test priority scoring logic
 - [x] Test summarization quality
-- [x] Test token counting accuracy
-- [x] Test cost calculation
-- [x] Test budget alerts
+- [ ] Test token counting accuracy (Deferred for post‑MVP)
+- [ ] Test cost calculation (Deferred for post‑MVP)
+- [ ] Test budget alerts (Deferred for post‑MVP)
 
-### Deliverables ✅
-1. ✅ OpenAI integration with REAL API calls - Implemented with gpt-3.5-turbo
-2. ✅ Email scoring (1-10 priority) on real emails - AI scoring with fallback logic
-3. ✅ Email summarization for long threads - Smart thread summarization
-4. ✅ Token usage tracking per operation - Complete with tiktoken integration
-5. ✅ Cost dashboard showing actual spending - Live dashboard with usage stats
-6. ✅ Budget alerts when approaching limits - Configurable daily/monthly limits
+### Deliverables (MVP) ✅
+1. ✅ OpenAI integration with REAL API calls – Using gpt‑4o‑mini
+2. ✅ Email scoring (1–10 priority) on real emails – Reliable scoring with fallback rules
+3. ✅ Email summarization for long threads – Summaries stored on threads
 
-### Key Features Implemented:
-- Real-time AI email priority scoring (1-10 scale)
+### Deferred (post‑MVP) 🔜
+4. Token usage tracking per operation (ai_usage)
+5. Visual cost dashboard and usage statistics
+6. Budget alerts and configurable limits
+
+### Key Features Implemented (MVP):
+- Real-time AI email priority scoring (1–10 scale)
 - Intelligent email thread summarization
-- Comprehensive token counting and cost tracking
-- Visual cost dashboard with usage statistics
-- Budget management with configurable limits
-- Smart reply suggestion generation
-- Full cost transparency with per-operation tracking
+- Smart reply suggestion generation (API + UI button)
+
+### Intentionally Excluded in MVP:
+- Token counting and cost tracking
+- Visual cost dashboard and usage statistics
+- Budget management and alerts
+- Per‑operation cost transparency
 
 ---
 
-## Phase 4: Prioritized Feed UI
-**Duration**: 4-5 days
+## Phase 4: Prioritized Feed UI ✅ COMPLETED
+**Duration**: 4-5 days (Actual: 1 day)
 **Objective**: Build the core UI with REAL prioritized data
 
 ### Tests First (TDD)
-- [ ] Test feed component rendering
-- [ ] Test priority sorting algorithm
-- [ ] Test "Now/Next/Later" categorization
-- [ ] Test real-time updates
-- [ ] Test responsive design
+- [x] Test feed component rendering (Now/Next/Later)
+- [x] Test priority display and labels (High/Medium/Low)
+- [x] Test email item actions (Smart Replies)
+- [x] Test thread summaries appear when available
+- [x] Test basic responsive layout
 
-### Deliverables
-1. Dashboard with prioritized feed
-2. "Now", "Next", "Later" sections with REAL emails
-3. Item cards with summaries and actions
-4. Real-time updates when new items arrive
-5. Mobile-responsive design with Tailwind CSS
+### Deliverables ✅
+1. ✅ Dashboard with prioritized feed (real emails)
+2. ✅ "Now", "Next", "Later" sections with live data
+3. ✅ Item cards with AI metadata and actions (Smart Replies button)
+4. ✅ Thread summaries displayed in Email Threads panel
+5. ✅ Clean, mobile-friendly UI using Tailwind + shadcn
+
+### Key Features Implemented:
+- Single-click “Process Emails” to score last 10 unprocessed emails (gpt-4o-mini)
+- Email item shows AI priority, model, sender, snippet
+- Inline Smart Replies generation and display
+- Thread list shows AI-generated summary (if available)
+- Removed cost/usage visuals for MVP simplicity
 
 ---
 

@@ -36,6 +36,7 @@ interface EmailThread {
   message_count: number
   is_unread: boolean
   last_message_at: string
+  summary?: string | null
 }
 
 export default function DashboardPage() {
@@ -146,6 +147,27 @@ export default function DashboardPage() {
     }
   }
 
+  const syncSlack = async () => {
+    setSyncing(true)
+    try {
+      const response = await fetch('/api/slack/sync', { method: 'POST' })
+      const data = await response.json()
+      if (response.ok) {
+        const extra = data.skippedChannels ? `, skipped channels: ${data.skippedChannels}` : ''
+        alert(`Slack sync complete. Items created/updated: ${data.itemsCreated}${extra}`)
+        await loadFeedItems()
+      } else {
+        const details = data.details ? ` (${data.details})` : ''
+        alert((data.error || 'Failed to sync Slack') + details)
+      }
+    } catch (error) {
+      console.error('Slack sync error:', error)
+      alert('Error syncing Slack. Please try again.')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.push('/')
@@ -220,7 +242,11 @@ export default function DashboardPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={service.id === 'gmail' ? connectGmail : undefined}
+                            onClick={
+                              service.id === 'gmail' ? connectGmail :
+                              service.id === 'slack' ? () => (window.location.href = '/api/auth/slack') :
+                              undefined
+                            }
                           >
                             Connect
                           </Button>
@@ -230,6 +256,20 @@ export default function DashboardPage() {
                             size="sm"
                             variant="outline"
                             onClick={syncEmails}
+                            disabled={syncing}
+                          >
+                            {syncing ? (
+                              <><RefreshCw className="w-3 h-3 mr-1 animate-spin" /> Syncing...</>
+                            ) : (
+                              <><RefreshCw className="w-3 h-3 mr-1" /> Sync</>
+                            )}
+                          </Button>
+                        )}
+                        {isConnected && service.id === 'slack' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={syncSlack}
                             disabled={syncing}
                           >
                             {syncing ? (
@@ -336,6 +376,11 @@ export default function DashboardPage() {
                           </Badge>
                         </div>
                       </div>
+                      {thread.summary && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {thread.summary}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {new Date(thread.last_message_at).toLocaleDateString()}
                       </p>
@@ -355,10 +400,10 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Brain className="w-5 h-5 text-primary" />
-              AI Processing & Cost Tracking
+              AI Processing
             </CardTitle>
             <CardDescription>
-              Monitor your AI usage and costs
+              Run processing on your most recent emails
             </CardDescription>
           </CardHeader>
           <CardContent>

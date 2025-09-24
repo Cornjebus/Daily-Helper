@@ -7,24 +7,31 @@ import {
 } from '@/lib/ai/openai'
 
 export async function POST() {
+  console.log('🚀 AI Processing API called at:', new Date().toISOString())
   try {
+    console.log('📡 Creating Supabase client...')
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+
+    console.log('🔐 Getting user authentication...')
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError) {
+      console.error('❌ Authentication error:', authError)
+      return NextResponse.json({ error: 'Authentication failed', details: authError.message }, { status: 401 })
+    }
 
     if (!user) {
+      console.error('❌ No authenticated user found')
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Check budget before processing
-    const budgetCheck = await checkBudgetAlerts(user.id)
-    if (budgetCheck.dailyUsage >= budgetCheck.dailyLimit) {
-      return NextResponse.json({
-        error: 'Daily AI budget exceeded',
-        budget: budgetCheck
-      }, { status: 429 })
-    }
+    console.log('✅ User authenticated:', user.id)
 
-    // Get unprocessed emails from today
+    // Budget checks disabled per request
+
+    // Get recent emails (remove date restriction); we'll process last 10 unprocessed
+    console.log('📧 Fetching recent emails...')
+
     const { data: emails, error: emailError } = await supabase
       .from('emails')
       .select(`
@@ -32,12 +39,15 @@ export async function POST() {
         email_ai_metadata(priority_score)
       `)
       .eq('user_id', user.id)
-      .gte('received_at', new Date().toISOString().split('T')[0])
       .order('received_at', { ascending: false })
+      .limit(50)
 
     if (emailError) {
+      console.error('❌ Error fetching emails:', emailError)
       throw emailError
     }
+
+    console.log(`📧 Found ${emails?.length || 0} emails from today`)
 
     // Filter out already processed emails
     const unprocessedEmails = emails?.filter(
@@ -50,10 +60,10 @@ export async function POST() {
       errors: 0,
     }
 
-    console.log(`Found ${unprocessedEmails.length} unprocessed emails`)
+    console.log(`Found ${unprocessedEmails.length} unprocessed emails (will process up to 10)`) 
 
-    // Process each email (increased from 10 to 50)
-    for (const email of unprocessedEmails.slice(0, 50)) {
+    // Process last 10 unprocessed emails
+    for (const email of unprocessedEmails.slice(0, 10)) {
       try {
         // Score email priority
         const { score, reasoning } = await scoreEmailPriority(
@@ -77,60 +87,64 @@ export async function POST() {
           .eq('id', email.id)
 
         // Update feed_items with AI processing status
-        console.log(`Updating feed_items for email ${email.id} with score ${score}`)
+        console.log(`🔄 Updating feed_items for email ${email.id} with score ${score}`)
         const feedUpdateResult = await supabase
           .from('feed_items')
           .update({
             priority: Math.round(11 - score),
             metadata: {
-              ...email.metadata,
+              ...(email.metadata || {}),
               from: email.from_email,
               ai_score: score,
               ai_processed: true,
-              ai_model: 'gpt-4o-mini',
+              ai_model: process.env.OPENAI_ACTIVE_MODEL || process.env.OPENAI_PREFERRED_MODEL || 'gpt-4o-mini',
               ai_reasoning: reasoning
             },
             updated_at: new Date().toISOString(),
           })
           .eq('external_id', email.id)
           .eq('source', 'gmail')
+          .select('id')
 
-        console.log(`Feed items update result:`, feedUpdateResult)
+        const updatedCount = Array.isArray(feedUpdateResult.data) ? feedUpdateResult.data.length : 0
+        console.log(`🔄 Feed items update result:`, { status: feedUpdateResult.status, error: feedUpdateResult.error })
+        console.log(`🔄 Updated ${updatedCount} feed items`)
 
         // If no feed_items were updated, create one
-        if (feedUpdateResult.count === 0) {
-          console.log(`No feed_items found for email ${email.id}, creating one`)
-          const createResult = await supabase
-            .from('feed_items')
-            .insert({
-              user_id: user.id,
-              source: 'gmail',
-              external_id: email.id,
-              title: email.subject || 'No Subject',
-              content: email.snippet || '',
-              category: email.is_important || email.is_starred ? 'now' :
-                        email.is_unread ? 'next' :
-                        'later',
-              priority: Math.round(11 - score),
-              metadata: {
-                from: email.from_email,
-                ai_score: score,
-                ai_processed: true,
-                ai_model: 'gpt-4o-mini',
-                ai_reasoning: reasoning
-              },
-              created_at: new Date().toISOString(),
-            })
-          console.log(`Feed item creation result:`, createResult)
+        if (updatedCount === 0) {
+          console.log(`📝 No feed_items found for email ${email.id}, creating one`)
+          try {
+            const createResult = await supabase
+              .from('feed_items')
+              .insert({
+                user_id: user.id, // This is already a valid UUID from auth
+                source: 'gmail',
+                external_id: email.id,
+                title: email.subject || 'No Subject',
+                content: email.snippet || '',
+                category: email.is_important || email.is_starred ? 'now' :
+                          email.is_unread ? 'next' :
+                          'later',
+                priority: Math.round(11 - score),
+                metadata: {
+                  from: email.from_email,
+                  ai_score: score,
+                  ai_processed: true,
+                  ai_model: process.env.OPENAI_ACTIVE_MODEL || process.env.OPENAI_PREFERRED_MODEL || 'gpt-4o-mini',
+                  ai_reasoning: reasoning
+                },
+                created_at: new Date().toISOString(),
+              })
+            console.log(`📝 Feed item creation result:`, createResult)
+          } catch (insertError) {
+            console.error(`❌ Error creating feed_item for email ${email.id}:`, insertError)
+            // Don't fail the entire process for this error
+          }
         }
 
         processedCount.scored++
 
-        // Check budget again after each operation
-        const midCheck = await checkBudgetAlerts(user.id)
-        if (midCheck.dailyUsage >= midCheck.dailyLimit) {
-          break
-        }
+        // Budget checks disabled
       } catch (error) {
         console.error(`Error processing email ${email.id}:`, error)
         processedCount.errors++
@@ -178,11 +192,7 @@ export async function POST() {
 
           processedCount.summarized++
 
-          // Check budget
-          const midCheck = await checkBudgetAlerts(user.id)
-          if (midCheck.dailyUsage >= midCheck.dailyLimit) {
-            break
-          }
+          // Budget checks disabled
         } catch (error) {
           console.error(`Error summarizing thread ${thread.id}:`, error)
           processedCount.errors++
@@ -190,27 +200,48 @@ export async function POST() {
       }
     }
 
-    // Final budget check
-    const finalBudget = await checkBudgetAlerts(user.id)
-
     return NextResponse.json({
       success: true,
       processed: processedCount,
       budget: {
-        dailyUsed: `$${(finalBudget.dailyUsage / 100).toFixed(2)}`,
-        dailyLimit: `$${(finalBudget.dailyLimit / 100).toFixed(2)}`,
-        monthlyUsed: `$${(finalBudget.monthlyUsage / 100).toFixed(2)}`,
-        monthlyLimit: `$${(finalBudget.monthlyLimit / 100).toFixed(2)}`,
-        alert: finalBudget.shouldAlert,
-        alertMessage: finalBudget.alertMessage,
+        dailyUsed: '$0.00',
+        dailyLimit: '$0.00',
+        monthlyUsed: '$0.00',
+        monthlyLimit: '$0.00',
+        alert: false,
+        alertMessage: undefined,
       },
     })
   } catch (error: any) {
-    console.error('AI processing error:', error)
+    console.error('❌ AI processing error:', error)
+    console.error('❌ Error stack:', error.stack)
+
+    // Determine the type of error and provide appropriate response
+    let errorMessage = 'AI processing failed'
+    let statusCode = 500
+
+    if (error.message?.includes('Authentication')) {
+      errorMessage = 'Authentication error'
+      statusCode = 401
+    } else if (error.message?.includes('network') || error.message?.includes('ECONNREFUSED')) {
+      errorMessage = 'Database connection failed'
+      statusCode = 503
+    } else if (error.message?.includes('OpenAI') || error.message?.includes('API')) {
+      errorMessage = 'AI service temporarily unavailable'
+      statusCode = 503
+    }
+
     return NextResponse.json({
-      error: 'AI processing failed',
+      success: false,
+      error: errorMessage,
       details: error.message,
-    }, { status: 500 })
+      timestamp: new Date().toISOString(),
+      // Include additional debugging info in development
+      ...(process.env.NODE_ENV === 'development' && {
+        stack: error.stack,
+        fullError: error.toString()
+      })
+    }, { status: statusCode })
   }
 }
 
@@ -272,9 +303,11 @@ export async function GET() {
 
     return NextResponse.json(stats)
   } catch (error: any) {
+    console.error('❌ GET AI stats error:', error)
     return NextResponse.json({
       error: 'Failed to get AI stats',
       details: error.message,
+      timestamp: new Date().toISOString(),
     }, { status: 500 })
   }
 }
