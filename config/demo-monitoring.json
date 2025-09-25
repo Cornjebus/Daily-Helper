@@ -1,0 +1,147 @@
+{
+  "monitoring": {
+    "performance_thresholds": {
+      "email_processing_ms": 5000,
+      "ai_response_time_ms": 3000,
+      "database_query_ms": 1000,
+      "memory_usage_mb": 512,
+      "cpu_usage_percent": 80
+    },
+    "cost_alerts": {
+      "daily_threshold_percent": 80,
+      "monthly_threshold_percent": 85,
+      "spike_detection_percent": 200,
+      "cost_per_email_cents": 2,
+      "budget_warning_cents": 1000
+    },
+    "feature_health": {
+      "smart_scoring": {
+        "enabled": true,
+        "accuracy_threshold": 0.85,
+        "response_time_ms": 2000
+      },
+      "thread_summarization": {
+        "enabled": true,
+        "max_processing_time_ms": 5000,
+        "min_thread_length": 3
+      },
+      "smart_replies": {
+        "enabled": true,
+        "generation_time_ms": 3000,
+        "reply_count": 3
+      },
+      "weekly_digest": {
+        "enabled": true,
+        "generation_time_ms": 10000,
+        "success_rate_percent": 95
+      },
+      "bulk_unsubscribe": {
+        "enabled": true,
+        "detection_accuracy": 0.90,
+        "processing_time_ms": 1000
+      }
+    }
+  },
+  "logging": {
+    "levels": {
+      "production": "info",
+      "demo": "debug",
+      "development": "debug"
+    },
+    "retention": {
+      "logs_days": 7,
+      "metrics_days": 30,
+      "performance_days": 14,
+      "cost_data_days": 90
+    },
+    "categories": {
+      "performance": true,
+      "cost_tracking": true,
+      "ai_processing": true,
+      "user_activity": true,
+      "error_tracking": true,
+      "security": true
+    }
+  },
+  "demo_metrics": {
+    "cost_reduction": {
+      "target_percent": 67,
+      "baseline_model": "gpt-4",
+      "optimized_model": "gpt-4o-mini",
+      "baseline_cost_per_email": 0.045,
+      "optimized_cost_per_email": 0.015
+    },
+    "performance_targets": {
+      "email_scoring_accuracy": 0.95,
+      "processing_speed_ms": 2000,
+      "user_satisfaction_score": 4.5,
+      "time_savings_percent": 40
+    },
+    "showcase_features": [
+      "intelligent_priority_scoring",
+      "ai_thread_summarization",
+      "smart_reply_generation",
+      "cost_optimization",
+      "performance_monitoring",
+      "weekly_digest_automation",
+      "bulk_unsubscribe_intelligence"
+    ]
+  },
+  "alerts": {
+    "email": {
+      "enabled": false,
+      "recipients": ["demo@company.com"],
+      "severity_levels": ["critical", "high"]
+    },
+    "webhook": {
+      "enabled": false,
+      "url": "https://hooks.slack.com/demo",
+      "events": ["cost_spike", "performance_degradation", "error_threshold"]
+    },
+    "dashboard": {
+      "enabled": true,
+      "refresh_interval_ms": 30000,
+      "show_real_time": true
+    }
+  },
+  "data_collection": {
+    "user_interactions": {
+      "page_views": true,
+      "feature_usage": true,
+      "email_actions": true,
+      "time_spent": true
+    },
+    "performance_metrics": {
+      "response_times": true,
+      "error_rates": true,
+      "throughput": true,
+      "resource_usage": true
+    },
+    "cost_tracking": {
+      "ai_api_calls": true,
+      "token_usage": true,
+      "model_performance": true,
+      "budget_utilization": true
+    }
+  },
+  "reports": {
+    "daily_summary": {
+      "enabled": true,
+      "include_cost_analysis": true,
+      "include_performance_metrics": true,
+      "include_feature_usage": true
+    },
+    "weekly_digest": {
+      "enabled": true,
+      "include_trend_analysis": true,
+      "include_optimization_suggestions": true,
+      "include_roi_metrics": true
+    },
+    "real_time_dashboard": {
+      "enabled": true,
+      "update_interval_ms": 5000,
+      "show_live_processing": true,
+      "show_cost_savings": true
+    }
+  }
+}

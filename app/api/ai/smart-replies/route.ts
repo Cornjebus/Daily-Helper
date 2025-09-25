@@ -28,15 +28,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Smart replies supported for Gmail emails only' }, { status: 400 })
     }
 
-    // Load the email referenced by this feed item
-    const { data: email, error: emailErr } = await supabase
+    // Load the email referenced by this feed item (external_id may be internal UUID or gmail_id)
+    let { data: email } = await supabase
       .from('emails')
       .select('*')
       .eq('id', feedItem.external_id)
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (emailErr || !email) {
+    if (!email) {
+      const alt = await supabase
+        .from('emails')
+        .select('*')
+        .eq('gmail_id', feedItem.external_id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      email = alt.data || null
+    }
+
+    if (!email) {
       return NextResponse.json({ error: 'Email not found' }, { status: 404 })
     }
 
@@ -54,4 +64,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to generate replies', details: error.message }, { status: 500 })
   }
 }
-

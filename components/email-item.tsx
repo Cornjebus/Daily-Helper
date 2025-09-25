@@ -1,4 +1,4 @@
-import { Mail, MessageSquare } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ interface EmailItemProps {
     priority: number
     metadata?: {
       from?: string
+      // internal AI metadata removed from UI
       ai_score?: number
       ai_processed?: boolean
       ai_model?: string
@@ -63,43 +64,20 @@ export function EmailItem({ item }: EmailItemProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {item.source === 'gmail' && <Mail className="w-4 h-4 text-muted-foreground" />}
-          {item.source === 'slack' && <MessageSquare className="w-4 h-4 text-muted-foreground" />}
           <span className="text-sm font-medium">{item.title}</span>
         </div>
         <div className="flex items-center gap-2">
-          {item.metadata?.ai_processed && (
-            <>
-              <Badge
-                variant="outline"
-                className={`text-xs ${getPriorityColor(item.priority)}`}
-              >
-                {getPriorityLabel(item.priority)} ({item.priority}/10)
-              </Badge>
-              {item.metadata?.ai_model && (
-                <Badge variant="outline" className="bg-purple-50 text-purple-700 text-xs">
-                  {item.metadata.ai_model}
-                </Badge>
-              )}
-            </>
-          )}
-          {!item.metadata?.ai_processed && (
-            <Badge variant="outline" className="bg-gray-50 text-gray-600 text-xs">
-              Not processed
-            </Badge>
-          )}
+          <Badge
+            variant="outline"
+            className={`text-xs ${getPriorityColor(item.priority)}`}
+          >
+            {getPriorityLabel(item.priority)}
+          </Badge>
         </div>
       </div>
       <p className="text-sm text-muted-foreground line-clamp-2">{item.content}</p>
-      {item.source === 'slack' && item.metadata?.channel && (
-        <p className="text-xs text-muted-foreground">Channel: #{item.metadata.channel}</p>
-      )}
       {item.metadata?.from && (
         <p className="text-xs text-muted-foreground">From: {item.metadata.from}</p>
-      )}
-      {item.metadata?.ai_score && (
-        <div className="text-xs text-muted-foreground">
-          AI Score: {item.metadata.ai_score}/10
-        </div>
       )}
 
       {/* Smart replies */}

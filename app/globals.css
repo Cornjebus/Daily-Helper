@@ -45,6 +45,9 @@
 
 :root {
   --radius: 0.625rem;
+  /* Gentle brand tints */
+  --tint-blue: rgba(89, 117, 255, 0.10);   /* soft blue */
+  --tint-yellow: rgba(255, 214, 102, 0.12); /* soft yellow */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -79,6 +82,8 @@
 }
 
 .dark {
+  --tint-blue: rgba(89, 117, 255, 0.12);
+  --tint-yellow: rgba(255, 214, 102, 0.14);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -118,5 +123,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* subtle blue/yellow radial tints across the app */
+    background-image:
+      radial-gradient(600px 600px at 0% 0%, var(--tint-blue), transparent 60%),
+      radial-gradient(700px 700px at 100% 100%, var(--tint-yellow), transparent 60%);
+    background-attachment: fixed;
   }
 }

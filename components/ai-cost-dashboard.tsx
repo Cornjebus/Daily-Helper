@@ -30,7 +30,7 @@ export function AICostDashboard() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Processes the last 10 unprocessed emails using gpt-4o-mini and updates your feed.
+        Processes the last 10 unprocessed emails and updates your feed.
       </p>
       <div className="flex items-center gap-2">
         <Button onClick={processEmails} disabled={processing}>

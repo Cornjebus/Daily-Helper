@@ -3,5 +3,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "devCommand": "npm run dev",
-  "installCommand": "npm install --legacy-peer-deps"
+  "installCommand": "npm install --legacy-peer-deps",
+  "crons": [
+    {
+      "path": "/api/gmail/hourly-sync",
+      "schedule": "0 * * * *"
+    }
+  ]
 }

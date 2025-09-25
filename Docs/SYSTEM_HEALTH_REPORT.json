@@ -1,0 +1,40 @@
+{
+  "timestamp": "2025-09-25T06:23:59.076Z",
+  "version": "1.0.0",
+  "environment": "development",
+  "testResults": {
+    "totalTests": 25,
+    "passedTests": 19,
+    "failedTests": 6,
+    "warnings": 0,
+    "criticalErrors": [
+      "Schema validation: email_scores",
+      "Schema validation: email_patterns",
+      "Schema validation: user_scoring_preferences",
+      "Database write operations",
+      "AI email scoring API",
+      "Build test"
+    ],
+    "recommendations": []
+  },
+  "systemInfo": {
+    "nodeVersion": "v24.1.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "memoryUsage": {
+      "rss": 43712512,
+      "heapTotal": 139657216,
+      "heapUsed": 70945712,
+      "external": 3935068,
+      "arrayBuffers": 294530
+    },
+    "uptime": 50.850756792
+  },
+  "configuration": {
+    "database": true,
+    "ai": true,
+    "auth": true,
+    "gmail": true,
+    "email": true
+  }
+}
