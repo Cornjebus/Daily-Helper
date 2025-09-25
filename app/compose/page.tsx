@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -60,7 +59,14 @@ export default function ComposePage() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="content">Message</Label>
-            <Textarea id="content" rows={10} placeholder="Write your message..." value={content} onChange={e => setContent(e.target.value)} />
+            <textarea
+              id="content"
+              rows={10}
+              placeholder="Write your message..."
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              className="min-h-[140px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            />
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}
           {success && <div className="text-sm text-green-600">{success}</div>}
@@ -74,4 +80,3 @@ export default function ComposePage() {
     </div>
   )
 }
-
